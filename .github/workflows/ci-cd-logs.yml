@@ -1,0 +1,41 @@
+name: CI-CD-Logs
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Build (install dependencies)
+      - name: Build
+        run: |
+          pip install -r requirements.txt
+          echo "Build done ✅"
+
+      # Step 3: Test
+      - name: Run Tests
+        run: |
+          pytest
+          echo "Tests done ✅"
+
+      # Step 4: Deploy
+      - name: Deploy
+        run: |
+          echo "Deployment successful at $(date)" >> deployment.log
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add deployment.log
+          git commit -m "Auto-deploy update" || echo "No changes to commit"
+          git push || echo "Push done"
+          echo "Deploy done ✅"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
